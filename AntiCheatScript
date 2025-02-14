@@ -1,0 +1,49 @@
+local teleportThreshold = 100  -- Maximum distance (in studs) a player can teleport in one check (for teleportation detection)
+local speedThreshold = 50  -- Maximum speed (studs per second) allowed (for speed hack detection)
+local flyingHeightThreshold = 30  -- If the player’s vertical movement (Y-axis) exceeds this, it might be flying
+local checkInterval = 1  -- Time interval (in seconds) between checks (lower values = more frequent checks)
+
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        local lastCFrame = humanoidRootPart.CFrame
+        local lastTime = tick()
+        local lastPosition = humanoidRootPart.position
+
+        calculate the time difference
+        local timeElapsed = currentTime - lastTime
+
+        calculate the distance moved
+        local distanceMoved = (currentPosition - lastPosition).magnitude
+
+        Check for teleportation (to far in a small timeframe) do
+            if distanceMoved > teleportThreshold then
+                (player.Name .. " might be teleporting! Distance moved: " .. distanceMoved .. " studs.")
+                player:Kick("teleporting detected :(")
+            end
+
+            Check for speed hacking (Quick movement) do
+                local speed = distanceMoved / timeElapsed
+                if speed > speedThreshold then
+                    warn(player.Name .. " might be speed hacking! Speed: " .. speed .. " studs/sec.")
+                    player:Kick("Speed hacks detected :(")
+                end
+
+                -- Check for flying (unusual vertical movement)
+                local verticalMovement = currentPosition.Y - lastPosition.Y
+                if math.abs(verticalMovement) > flyingHeightThreshold then
+                    warn(player.Name .. " might be flying! Vertical movement: " .. verticalMovement .. " studs.")
+                    player:Kick("Flying detected!")
+                end
+
+                -- Update last position, time, and CFrame for the next check
+                lastPosition = currentPosition
+                lastTime = currentTime
+                lastCFrame = currentCFrame
+
+                wait(checkInterval)
+            end
+        end)
+end)
+
+print("CFrame anti-cheat system initialized for teleportation, flying, and speed.")
